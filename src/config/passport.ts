@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import bcrypt from 'bcrypt';
 import { User } from '../users/models/user.model';
+var bcrypt = require('bcryptjs');
 
 // Local Strategy for username/password authentication
 passport.use(new LocalStrategy({
@@ -19,7 +19,7 @@ passport.use(new LocalStrategy({
     }
 
     // Compare the provided password with the stored hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       // If the password is incorrect, return an error
       return done(null, false, { message: 'Incorrect email or password.' });

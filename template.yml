@@ -6,7 +6,7 @@ Resources:
   AwesomeBlogApi:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/app.handler  # Path to the Lambda handler in app.ts
+      Handler: dist/app.handler  # Path to the Lambda handler in app.ts
       Runtime: nodejs18.x
       MemorySize: 1024
       Timeout: 30  # Increase if your application needs more time

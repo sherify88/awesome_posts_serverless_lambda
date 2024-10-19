@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType, PrimaryKey, Default, BeforeFind, HasMany, AfterFind, BeforeCreate } from 'sequelize-typescript';
 import { DataTypes, Optional } from 'sequelize';
 import { Post } from '../../posts/models/post.model';
-import bcrypt from 'bcrypt';
+var bcrypt = require('bcryptjs');
 
 export interface UserAttributes {
   id?: string;  // Change to string for UUID
@@ -88,13 +88,13 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
   // Hash password before saving the user
   @BeforeCreate
   static async hashPassword(instance: User) {
-    const salt = await bcrypt.genSalt(10);
-    instance.password = await bcrypt.hash(instance.password, salt);
+    const salt = await bcrypt.genSaltSync(10);
+    instance.password = await bcrypt.hashSync(instance.password, salt);
   }
 
   // Method to compare passwords
   async validatePassword(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this.password);
+    return bcrypt.compareSync(password, this.password);
   }
 
 }

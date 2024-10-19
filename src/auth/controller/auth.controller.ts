@@ -3,7 +3,6 @@ import { Post } from '../../posts/models/post.model';
 import jwt from 'jsonwebtoken';
 import createError from 'http-errors';
 import { LoginDto } from '../dto/login.dto';
-import {  compare } from 'bcrypt';
 import { User } from '../../users/models/user.model';
 import passport from 'passport';
 
