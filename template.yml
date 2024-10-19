@@ -21,7 +21,7 @@ Resources:
           DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD:SecretString}}' 
           DB_NAME: !Sub '{{resolve:ssm:/DB_NAME}}'
           DB_PORT: !Sub '{{resolve:ssm:/DB_PORT}}'
-          JWT_SECRET: !Sub '{{resolve:ssm:/JWT_SECRET}}'
+          JWT_SECRET: !Sub '{{resolve:secretsmanager:/JWT_SECRET:SecretString}}' 
       Events:
         Api:
           Type: Api
