@@ -16,7 +16,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
       const token = jwt.sign(
         { id: user.id, role: user.role },  // Include the role in the token
         process.env.JWT_SECRET || 'your_jwt_secret', 
-        { expiresIn: '1h' }
+        { expiresIn: '720' }
       );
   
       return res.status(200).json({ message: 'Logged in successfully', token });
