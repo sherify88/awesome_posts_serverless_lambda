@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Your Express API on AWS Lambda
+
+Resources:
+  AwesomeBlogApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/app.handler  # Path to the Lambda handler in app.ts
+      Runtime: nodejs18.x
+      MemorySize: 1024
+      Timeout: 30  # Increase if your application needs more time
+      Policies:
+        - AWSLambdaBasicExecutionRole  # Basic permissions for Lambda execution
+        - AmazonRDSFullAccess  # Permissions for RDS if using a database
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: !Sub '{{resolve:ssm:/DB_HOST}}'
+          DB_USERNAME: !Sub '{{resolve:ssm:/DB_USERNAME}}'
+          DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD:SecretString}}' 
+          DB_NAME: !Sub '{{resolve:ssm:/DB_NAME}}'
+          DB_PORT: !Sub '{{resolve:ssm:/DB_PORT}}'
+          JWT_SECRET: !Sub '{{resolve:ssm:/JWT_SECRET}}'
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod

@@ -6,6 +6,8 @@ import { json } from "body-parser";
 import { connectDatabase } from "./config/sequelize.config";
 import { errorHandler } from "./middlewares/errorHandler";
 import passport from "./config/passport";
+import awsServerlessExpress from 'aws-serverless-express';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
 const app: Application = express();
 
@@ -27,8 +29,10 @@ connectDatabase();
 
 app.use(errorHandler);
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Wrap the app in aws-serverless-express
+const server = awsServerlessExpress.createServer(app);
+
+// Lambda handler
+export const handler = (event: APIGatewayProxyEvent, context: Context) => {
+  awsServerlessExpress.proxy(server, event, context);
+};

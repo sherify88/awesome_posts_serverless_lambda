@@ -8,11 +8,11 @@ config();
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
-  host: process.env.ENVIRON_DB_HOST,
-  port: Number(process.env.ENVIRON_DB_PORT),
-  username: process.env.ENVIRON_DB_USER,
-  password: process.env.ENVIRON_DB_PWD,
-  database: process.env.ENVIRON_DB_NAME,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   models: [User, Post],  // Register your models explicitly
   logging: false,
 });

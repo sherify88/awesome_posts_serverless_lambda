@@ -16,6 +16,7 @@ import { UserRole } from '../../enums/roles.enum';
 
 const router = Router();
 
+
 router.post('/', jwtAuth, authorize([UserRole.ADMIN]), validateDto(CreateUserDto), createUserWithPosts); // Apply DTO validation middleware
 router.get('/', jwtAuth, authorize([UserRole.ADMIN, UserRole.BLOGGER]), validateDto(GetUsersDto), getUsersWithPosts);
 router.get('/top-users', jwtAuth, authorize([UserRole.ADMIN]), getTopBloggersWithPosts);
