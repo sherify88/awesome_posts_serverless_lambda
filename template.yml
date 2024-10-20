@@ -2,6 +2,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Your Express API on AWS Lambda
 
+Parameters:
+  Environment:
+    Type: String
+    Default: prod  # Default to production
+    AllowedValues:
+      - prod
+      - test
+    Description: Deployment environment (prod or test)
+
 Resources:
   AwesomeBlogApi:
     Type: AWS::Serverless::Function
@@ -9,19 +18,19 @@ Resources:
       Handler: dist/app.handler  # Path to the Lambda handler in app.ts
       Runtime: nodejs18.x
       MemorySize: 1024
-      Timeout: 30  # Increase if your application needs more time
+      Timeout: 30
       Policies:
-        - AWSLambdaBasicExecutionRole  # Basic permissions for Lambda execution
-        - AmazonRDSFullAccess  # Permissions for RDS if using a database
+        - AWSLambdaBasicExecutionRole
+        - AmazonRDSFullAccess
       Environment:
         Variables:
-          NODE_ENV: production
-          DB_HOST: !Sub '{{resolve:ssm:/DB_HOST}}'
-          DB_USERNAME: !Sub '{{resolve:ssm:/DB_USERNAME}}'
-          DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD:SecretString}}' 
-          DB_NAME: !Sub '{{resolve:ssm:/DB_NAME}}'
-          DB_PORT: !Sub '{{resolve:ssm:/DB_PORT}}'
-          JWT_SECRET: !Sub '{{resolve:secretsmanager:/JWT_SECRET:SecretString}}' 
+          NODE_ENV: !Ref Environment  # Dynamic environment variable
+          DB_HOST: !Sub '{{resolve:ssm:/DB_HOST_${Environment}}}'  # Environment-specific DB host
+          DB_USERNAME: !Sub '{{resolve:ssm:/DB_USERNAME_${Environment}}}'  # Environment-specific DB username
+          DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD_${Environment}:SecretString}}'  # Environment-specific DB password
+          DB_NAME: !Sub '{{resolve:ssm:/DB_NAME_${Environment}}}'  # Environment-specific DB name
+          DB_PORT: !Sub '{{resolve:ssm:/DB_PORT_${Environment}}}'
+          JWT_SECRET: !Sub '{{resolve:secretsmanager:/JWT_SECRET_${Environment}:SecretString}}'  # Environment-specific JWT secret
       Events:
         Api:
           Type: Api
@@ -33,4 +42,9 @@ Resources:
   ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: Prod
+      StageName: !Ref Environment  # Stage name corresponds to the environment (prod, test, etc.)
+
+Outputs:
+  ApiUrl:
+    Description: URL of the API Gateway
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
