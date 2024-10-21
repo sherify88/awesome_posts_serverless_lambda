@@ -7,4 +7,4 @@ region = "eu-central-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
-parameter_overrides = "Environment=\"prod\""
+parameter_overrides = "Environment=\"prod\" VpcId=\"vpc-085a9a9859ca3363b\" SubnetIds=\"subnet-081e90e0ed571ac5b,subnet-0540c26f52b71f2b4,subnet-0c583403b11bb991e\" RDSProxySecurityGroupId=\"sg-049f80c37fd914e1d\""

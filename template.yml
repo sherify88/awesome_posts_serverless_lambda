@@ -5,32 +5,49 @@ Description: Your Express API on AWS Lambda
 Parameters:
   Environment:
     Type: String
-    Default: prod  # Default to production
+    Default: prod
     AllowedValues:
       - prod
       - test
     Description: Deployment environment (prod or test)
 
+  VpcId:
+    Type: String
+    Description: The ID of the VPC where Lambda and RDS Proxy reside  # <- Make sure this is defined
+
+  SubnetIds:
+    Type: CommaDelimitedList
+    Description: Subnet IDs where the Lambda function will be deployed
+
+  RDSProxySecurityGroupId:
+    Type: String
+    Description: The Security Group ID for the RDS Proxy that allows connections on port 5432
+
 Resources:
   AwesomeBlogApi:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/app.handler  # Path to the Lambda handler in app.ts
+      Handler: dist/app.handler
       Runtime: nodejs18.x
       MemorySize: 1024
       Timeout: 30
+      VpcConfig:
+        SubnetIds: !Ref SubnetIds
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSFullAccess
+        - !Ref RDSProxyPolicy
       Environment:
         Variables:
-          NODE_ENV: !Ref Environment  # Dynamic environment variable
-          DB_HOST: !Sub '{{resolve:ssm:/DB_HOST_${Environment}}}'  # Environment-specific DB host
-          DB_USERNAME: !Sub '{{resolve:ssm:/DB_USERNAME_${Environment}}}'  # Environment-specific DB username
-          DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD_${Environment}:SecretString}}'  # Environment-specific DB password
-          DB_NAME: !Sub '{{resolve:ssm:/DB_NAME_${Environment}}}'  # Environment-specific DB name
+          NODE_ENV: !Ref Environment
+          DB_HOST: !Sub '{{resolve:ssm:/RDS_PROXY_ENDPOINT_blogs_${Environment}}}'
+          DB_USERNAME: !Sub '{{resolve:ssm:/DB_USERNAME_${Environment}}}'
+          DB_PASSWORD: !Sub '{{resolve:secretsmanager:/DB_PASSWORD_${Environment}:SecretString}}'
+          DB_NAME: !Sub '{{resolve:ssm:/DB_NAME_${Environment}}}'
           DB_PORT: !Sub '{{resolve:ssm:/DB_PORT_${Environment}}}'
-          JWT_SECRET: !Sub '{{resolve:secretsmanager:/JWT_SECRET_${Environment}:SecretString}}'  # Environment-specific JWT secret
+          JWT_SECRET: !Sub '{{resolve:secretsmanager:/JWT_SECRET_${Environment}:SecretString}}'
       Events:
         Api:
           Type: Api
@@ -39,10 +56,32 @@ Resources:
             Method: ANY
             RestApiId: !Ref ApiGateway
 
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for Lambda to access RDS Proxy"
+      VpcId: !Ref VpcId  # <- Make sure the VpcId is being referenced here
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref RDSProxySecurityGroupId
+
+  RDSProxyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - rds-db:connect
+            Resource: !Sub 'arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db-proxy:prx-035005a68fe7f56d2'
+
   ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref Environment  # Stage name corresponds to the environment (prod, test, etc.)
+      StageName: !Ref Environment
 
 Outputs:
   ApiUrl:
