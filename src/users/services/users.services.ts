@@ -14,7 +14,6 @@ export const createUserWithPosts = async (dto: CreateUserDto) => {
     console.log({ posts,dto});
     const existingUser = await User.findOne({ where: { email: dto.email } });
     if (existingUser) {
-      await transaction.rollback();
       throw new createError.Conflict('User already exists');
     }
 
@@ -81,7 +80,6 @@ export const updateUserWithLock = async (id: string, dto: Partial<UserCreationAt
     });
 
     if (!user) {
-      await transaction.rollback();
       throw new createError.NotFound('User not found');
     }
 
@@ -100,7 +98,6 @@ export const updateUserWithOptimisticLocking = async (id: string, dto: Partial<U
   try {
     const user = await User.findOne({ where: { id }, transaction });
     if (!user) {
-      await transaction.rollback();
       throw new createError.NotFound('User not found');
     }
 
