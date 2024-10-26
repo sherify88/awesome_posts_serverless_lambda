@@ -6,6 +6,7 @@ import {
   deleteUser,
   getUserWithPosts,
   getTopBloggersWithPosts,
+  updateUserWithOptimisticLocking,
 } from '../controllers/users.controller';
 import { validateDto } from '../../middlewares/validate-dto'; // Import your validation middleware
 import { CreateUserDto } from '../dto/create-user.dto'; // Import the DTO
@@ -18,10 +19,11 @@ const router = Router();
 
 
 router.post('/', jwtAuth, authorize([UserRole.ADMIN]), validateDto(CreateUserDto), createUserWithPosts); // Apply DTO validation middleware
-router.get('/', jwtAuth, authorize([UserRole.ADMIN, UserRole.BLOGGER]), validateDto(GetUsersDto), getUsersWithPosts);
+router.get('/', jwtAuth, validateDto(GetUsersDto), getUsersWithPosts);
 router.get('/top-users', jwtAuth, authorize([UserRole.ADMIN]), getTopBloggersWithPosts);
 router.get('/:id', getUserWithPosts);
 router.patch('/:id', validateDto(UpdateUserDto), updateUserWithLock);
+router.patch('/optimisticLock/:id', validateDto(UpdateUserDto), updateUserWithOptimisticLocking);
 router.delete('/:id', deleteUser);
 
 export default router;

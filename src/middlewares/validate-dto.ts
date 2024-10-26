@@ -4,11 +4,15 @@ import { Request, Response, NextFunction } from 'express';
 
 export const validateDto = (dtoClass: any) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // Transform the request body into the DTO class instance
-    const dtoObject = plainToClass(dtoClass, req.body);
+    // define source from non empty object lenght body or query or params
+    const source = Object.keys(req.body).length > 0 ? req.body : Object.keys(req.query).length > 0 ? req.query : req.params;
+    const dtoObject = plainToClass(dtoClass, source);
+    console.log({ dtoObject,source,params:req.params,query:req.query,body:req.body });
+    
 
     // Validate the transformed object
     const errors = await validate(dtoObject, { whitelist: true, forbidNonWhitelisted: true });
+    console.log({ errors });
 
     if (errors.length > 0) {
       // If validation errors exist, send a response and end the function

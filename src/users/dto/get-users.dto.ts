@@ -1,11 +1,13 @@
-import { IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class GetUsersDto {
-    @IsOptional()
-    page?: number=1;
 
     @IsOptional()
-    limit?: number=10;
+    page?: number;
+
+    @IsOptional()
+    limit?: number;
 
     @IsOptional()
     search?: string;

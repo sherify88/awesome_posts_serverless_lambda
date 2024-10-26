@@ -11,13 +11,15 @@ export interface UserAttributes {
   password: string;
   isActive?: boolean;
   role?: string;
+  version?: number;  // Add version field for optimistic locking
 }
 
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id'> { }
 
 @Table({
   tableName: 'users',
-  timestamps: true
+  timestamps: true,
+  version: true  // Enable versioning for optimistic locking
 })
 export class User extends Model<UserAttributes, UserCreationAttributes> {
   @PrimaryKey
@@ -40,7 +42,6 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
     allowNull: false,
   })
   lastName!: string;
-
 
   @Column({
     type: DataType.ENUM('admin', 'blogger', 'customer'),  // Define possible roles
@@ -72,6 +73,14 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
   @HasMany(() => Post)  // Add this line to define the association
   posts!: Post[];  // Ensure this is an array of Post
 
+  // Add version column to enable optimistic locking
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    defaultValue: 0,  // Initialize version with 0
+  })
+  version!: number;
+
   @AfterFind
   static hideEmail(users: User | User[]) {
     // Check if 'users' is an array or a single instance
@@ -96,5 +105,4 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compareSync(password, this.password);
   }
-
 }
