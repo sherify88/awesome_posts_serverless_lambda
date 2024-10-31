@@ -3,7 +3,7 @@ import { DataTypes, Optional } from 'sequelize';
 import { User } from '../../users/models/user.model';
 
 export interface PostAttributes {
-  id?: string;  // Change to string for UUID
+  id?: string; 
   title: string;
   content: string;
   userId: string;
@@ -18,13 +18,13 @@ export interface PostCreationAttributes extends Optional<PostAttributes, 'id'> {
 export class Post extends Model<PostAttributes, PostCreationAttributes> {
 
   @PrimaryKey
-  @Default(DataType.UUIDV4)  // Automatically generate UUIDs
+  @Default(DataType.UUIDV4) 
   @Column({
-    type: DataType.UUID,  // Set the type to UUID
+    type: DataType.UUID,  
     allowNull: false,
     defaultValue: DataTypes.UUIDV4,
   })
-  id!: string;  // Make the id field a string type to hold the UUID
+  id!: string; 
 
 
   @Column({

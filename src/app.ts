@@ -1,7 +1,7 @@
 import express, { Application } from "express";
-import postsRouter from './posts/routes/posts.route';  // Adjust the path based on your folder structure
-import usersRouter from './users/routes/users.route';  // Adjust the path based on your folder structure
-import authRouter from './auth/routes/auth.route';  // Adjust the path based on your folder structure
+import postsRouter from './posts/routes/posts.route'; 
+import usersRouter from './users/routes/users.route'; 
+import authRouter from './auth/routes/auth.route';  
 import { json } from "body-parser";
 import { connectDatabase } from "./config/sequelize.config";
 import { errorHandler } from "./middlewares/errorHandler";

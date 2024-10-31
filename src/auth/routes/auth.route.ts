@@ -5,6 +5,6 @@ import { login } from "../controller/auth.controller";
 
 const router = Router();
 
-router.post('/login', validateDto(LoginDto),login ); // Apply DTO validation middleware
+router.post('/login', validateDto(LoginDto),login ); 
 
 export default router;

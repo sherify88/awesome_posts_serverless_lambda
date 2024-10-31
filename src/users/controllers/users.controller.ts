@@ -4,7 +4,7 @@ import { GetUsersDto } from '../dto/get-users.dto';
 
 export const createUserWithPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const newUser = await userService.createUserWithPosts(req.body);  // Passing the entire req.body DTO
+    const newUser = await userService.createUserWithPostsAndGroups(req.body);  
     res.status(201).json(newUser);
   } catch (error) {
     next(error);
@@ -14,8 +14,7 @@ export const createUserWithPosts = async (req: Request, res: Response, next: Nex
 export const getUsersWithPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const dto= req.query as unknown as GetUsersDto;
-    console.log({dto});
-    const users = await userService.getUsersWithPosts(dto);
+    const users = await userService.getUsersWithPostsAndGroups(dto);
     res.status(200).json(users);
   } catch (error) {
     next(error);

@@ -1,6 +1,7 @@
-import { IsString, IsEmail, IsArray, ValidateNested, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsEmail, IsArray, ValidateNested, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreatePostDto } from '../../posts/dto/create-post.dto';
+import { CreateGroupDto } from '../../groups/dto/createGroup.dto';
 
 
 
@@ -12,6 +13,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   lastName!: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  age!: number;
 
   @IsNotEmpty()
   @IsEmail()
@@ -28,6 +33,14 @@ export class CreateUserDto {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true, })
-  @Type(() => CreatePostDto)  // Apply transformation for nested array
+  @Type(() => CreatePostDto) 
   posts?: CreatePostDto[];
+
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true, })
+  @Type(() => CreateGroupDto)  
+  groups?: CreateGroupDto[];
+
 }

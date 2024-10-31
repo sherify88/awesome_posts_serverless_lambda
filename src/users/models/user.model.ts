@@ -1,17 +1,20 @@
 import { Table, Column, Model, DataType, PrimaryKey, Default, BeforeFind, HasMany, AfterFind, BeforeCreate } from 'sequelize-typescript';
+import { BelongsToMany } from 'sequelize-typescript';
 import { DataTypes, Optional } from 'sequelize';
 import { Post } from '../../posts/models/post.model';
+import { Group } from '../../groups/models/group.model';
+import { UserGroup } from '../../groups/models/userGroup.model';
 var bcrypt = require('bcryptjs');
 
 export interface UserAttributes {
-  id?: string;  // Change to string for UUID
+  id?: string;  
   firstName: string;
   lastName: string;
   email: string;
   password: string;
   isActive?: boolean;
   role?: string;
-  version?: number;  // Add version field for optimistic locking
+  version?: number;  
 }
 
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id'> { }
@@ -19,17 +22,17 @@ export interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {
 @Table({
   tableName: 'users',
   timestamps: true,
-  version: true  // Enable versioning for optimistic locking
+  version: true  
 })
 export class User extends Model<UserAttributes, UserCreationAttributes> {
   @PrimaryKey
-  @Default(DataType.UUIDV4)  // Automatically generate UUIDs
+  @Default(DataType.UUIDV4)  
   @Column({
-    type: DataType.UUID,  // Set the type to UUID
+    type: DataType.UUID,  
     allowNull: false,
     defaultValue: DataTypes.UUIDV4,
   })
-  id!: string;  // Make the id field a string type to hold the UUID
+  id!: string;  
 
   @Column({
     type: DataType.STRING,
@@ -44,11 +47,11 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
   lastName!: string;
 
   @Column({
-    type: DataType.ENUM('admin', 'blogger', 'customer'),  // Define possible roles
+    type: DataType.ENUM('admin', 'blogger', 'customer'),  
     allowNull: false,
     defaultValue: 'customer',
   })
-  role!: string;  // Add a role field
+  role!: string; 
 
   @Column({
     type: DataType.STRING,
@@ -70,39 +73,42 @@ export class User extends Model<UserAttributes, UserCreationAttributes> {
   })
   isActive!: boolean;
 
-  @HasMany(() => Post)  // Add this line to define the association
-  posts!: Post[];  // Ensure this is an array of Post
+  @HasMany(() => Post)  
+  posts!: Post[];  
 
-  // Add version column to enable optimistic locking
+  @BelongsToMany(() => Group, () => UserGroup)
+  groups!: Group[];
+  
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    defaultValue: 0,  // Initialize version with 0
+    defaultValue: 0,  
   })
   version!: number;
 
   @AfterFind
   static hideEmail(users: User | User[]) {
-    // Check if 'users' is an array or a single instance
     if (Array.isArray(users)) {
-      // If it's an array, hide email for each user
       users.forEach(user => user.email = 'hidden');
     } else {
-      // If it's a single instance, hide the email directly
       if (!users) return;
       users.email = 'hidden';
     }
   }
 
-  // Hash password before saving the user
   @BeforeCreate
   static async hashPassword(instance: User) {
     const salt = await bcrypt.genSaltSync(10);
     instance.password = await bcrypt.hashSync(instance.password, salt);
   }
 
-  // Method to compare passwords
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compareSync(password, this.password);
   }
+
+
+    public addGroups!: (group: Group | Group[], options?: any) => Promise<void>;
+    public getGroups!: () => Promise<Group[]>;
+    public setGroups!: (groups: Group[]) => Promise<void>;
+    public removeGroup!: (group: Group | Group[]) => Promise<void>;
 }

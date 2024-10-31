@@ -4,7 +4,7 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('posts', {
       id: {
-        type: Sequelize.UUID,          // Use UUID for id
+        type: Sequelize.UUID,         
         primaryKey: true,
         allowNull: false,
       },
@@ -17,13 +17,13 @@ module.exports = {
         allowNull: false,
       },
       userId: {
-        type: Sequelize.UUID,           // Use UUID for foreign key reference
+        type: Sequelize.UUID,           
         allowNull: false,
         references: {
-          model: 'users',              // Reference the 'users' table
-          key: 'id',                   // Reference the UUID 'id' field in the 'users' table
+          model: 'users',              
+          key: 'id',                  
         },
-        onDelete: 'CASCADE',            // Cascade delete when the associated user is deleted
+        onDelete: 'CASCADE',           
         onUpdate: 'CASCADE',
       },
       createdAt: {

@@ -1,18 +1,22 @@
 import { Post } from '../../posts/models/post.model';
 import { User, UserCreationAttributes } from '../models/user.model';
 import sequelize from '../../config/sequelize.config';
+import { OptimisticLockError, Transaction } from 'sequelize';
 import { UserRole } from '../../enums/roles.enum';
 import createError from 'http-errors';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { GetUsersDto } from '../dto/get-users.dto';
+import { Group } from '../../groups/models/group.model';
 
-export const createUserWithPosts = async (dto: CreateUserDto) => {
-  const { posts = [] } = dto;
-  const transaction = await sequelize.transaction();
+
+export const createUserWithPostsAndGroups = async (dto: CreateUserDto) => {
+  const { posts = [], groups = [] } = dto;
+  const transaction = await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ });
 
   try {
-    console.log({ posts,dto});
-    const existingUser = await User.findOne({ where: { email: dto.email } });
+    console.log({ posts, groups, dto });
+
+    const existingUser = await User.findOne({ where: { email: dto.email }, transaction });
     if (existingUser) {
       throw new createError.Conflict('User already exists');
     }
@@ -26,20 +30,34 @@ export const createUserWithPosts = async (dto: CreateUserDto) => {
       await Promise.all(postPromises);
     }
 
+    if (groups.length > 0) {
+      const groupPromises = groups.map(async (group) => {
+        const [createdGroup] = await Group.findOrCreate({
+          where: { name: group.name },
+          defaults: { name: group.name },
+          transaction,
+        });
+        return createdGroup;
+      });
+
+      const createdGroups = await Promise.all(groupPromises);
+      await newUser.addGroups(createdGroups, { transaction });
+    }
+
     await transaction.commit();
     return newUser;
+
   } catch (error) {
     await transaction.rollback();
     throw error;
   }
 };
-
-export const getUsersWithPosts = async (pagination: GetUsersDto) => {
+export const getUsersWithPostsAndGroups = async (pagination: GetUsersDto) => {
   const { limit, page } = pagination;
   const offset = (page??1 - 1) * (limit??10);
 
   return User.findAndCountAll({
-    include: [Post],
+    include: [Post, Group],
     limit,
     offset,
     order: [['createdAt', 'DESC']],
@@ -70,7 +88,7 @@ export const getTopBloggersWithPosts = async () => {
 };
 
 export const updateUserWithLock = async (id: string, dto: Partial<UserCreationAttributes>) => {
-  const transaction = await sequelize.transaction();
+  const transaction = await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ });
 
   try {
     const user = await User.findOne({
@@ -93,10 +111,11 @@ export const updateUserWithLock = async (id: string, dto: Partial<UserCreationAt
 };
 
 export const updateUserWithOptimisticLocking = async (id: string, dto: Partial<UserCreationAttributes>) => {
-  const transaction = await sequelize.transaction();
+  const transaction = await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ });
 
   try {
     const user = await User.findOne({ where: { id }, transaction });
+    
     if (!user) {
       throw new createError.NotFound('User not found');
     }
@@ -106,7 +125,7 @@ export const updateUserWithOptimisticLocking = async (id: string, dto: Partial<U
     return user;
   } catch (error) {
     await transaction.rollback();
-    if ((error as any).name === 'SequelizeOptimisticLockError') {
+    if (error instanceof OptimisticLockError) {
       throw new createError.Conflict('Update failed due to a version conflict. Please retry with the latest data.');
     }
     throw error;
