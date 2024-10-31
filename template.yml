@@ -13,7 +13,7 @@ Parameters:
 
   VpcId:
     Type: String
-    Description: The ID of the VPC where Lambda and RDS Proxy reside  # <- Make sure this is defined
+    Description: The ID of the VPC where Lambda and RDS Proxy reside  
 
   SubnetIds:
     Type: CommaDelimitedList
@@ -60,7 +60,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Security group for Lambda to access RDS Proxy"
-      VpcId: !Ref VpcId  # <- Make sure the VpcId is being referenced here
+      VpcId: !Ref VpcId 
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
